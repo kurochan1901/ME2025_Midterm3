@@ -1,7 +1,46 @@
 {% extends 'index.html' %}
 
 {% block form %}
-<form>
+<form id="OrderForm">
+    <label>日期：</label>
+    <input type="date" id="order-date" required><br>
+
+    <label>客戶名稱：</label>
+    <input type="text" id="customer" required><br>
+
+    <label>商品種類：</label>
+    <select id="category" required>
+        <option value="" selected disabled>請選擇</option>
+        <option value="cloth">上衣</option>
+        <option value="pants">褲子</option>
+        <option value="shoes">鞋類</option>
+    </select><br>
+
+    <label>商品名稱：</label>
+    <select id="product" required>
+        <option value="" selected disabled>請先選種類</option>
+    </select><br>
+
+    <label>單價：</label>
+    <input type="number" id="price" readonly><br>
+
+    <label>數量：</label>
+    <input type="number" id="qty" min="1" value="1" required><br>
+
+    <label>小計：</label>
+    <input type="number" id="subtotal" readonly><br>
+
+    <label>狀態：</label>
+    <select id="status">
+        <option value="unpaid" selected>未付款</option>
+        <option value="paid">已付款</option>
+        <option value="finished">已完成</option>
+    </select><br>
+
+    <label>備註：</label>
+    <textarea id="note"></textarea><br>
+
+    <button type="button" id="submit-btn">新增</button>
 
 </form>
 
