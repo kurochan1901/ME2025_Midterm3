@@ -1,97 +1,92 @@
 // 開啟與關閉Modal
 function open_input_table() {
     document.getElementById("addModal").style.display = "block";
-
-    // today's date
-    document.getElementById("order_date").value = new Date().toISOString().split("T")[0];
+    document.getElementById("date").value = new Date().toISOString().split("T")[0];
 }
+
 function close_input_table() {
     document.getElementById("addModal").style.display = "none";
 }
 
-function delete_data(value) {
-    // 發送 DELETE 請求到後端
-    fetch(`/product?order_id=${value}`, {
-        method: "DELETE",
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("伺服器回傳錯誤");
-        }
-        return response.json(); // 假設後端回傳 JSON 格式資料
-    })
-    .then(result => {
-        console.log(result); // 在這裡處理成功的回應
-        close_input_table(); // 關閉 modal
-        location.assign('/'); // 重新載入頁面
-    })
-    .catch(error => {
-        console.error("發生錯誤：", error);
-    });
+function delete_data(order_id) {
+    fetch(`/product?order_id=${order_id}`, { method: "DELETE" })
+        .then(r => r.json())
+        .then(result => {
+            alert(result.message);
+            location.reload();
+        });
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    // 取得表單元素
+
+document.addEventListener("DOMContentLoaded", function () {
+    // 取得欄位元素
     const category = document.getElementById("category");
-    const product = document.getElementById("product");
-    const price = document.getElementById("price");
-    const qty = document.getElementById("qty");
-    const subtotal = document.getElementById("subtotal");
+    const product  = document.getElementById("product");
+    const price    = document.getElementById("price");
+    const amount   = document.getElementById("amount");
+    const total    = document.getElementById("total");
 
-    if (!category) return; // 如果找不到 category 元素，則退出
-
-    category.addEventListener("change", function() {
-        // 根據選擇的類別取得商品列表
-        const type = category.value;
-
-        fetch(`/product/category?type=${encodeURIComponent(type)}`)
-            .then(response => response.json())
+    category.addEventListener("change", function () {
+        const cat = category.value;
+        // 更新商品名稱
+        fetch(`/product?category=${encodeURIComponent(cat)}`)
+            .then(r => r.json())
             .then(data => {
-                
+
                 product.innerHTML = `<option disabled selected>請選擇商品</option>`;
-                data.forEach(p => {
-                    product.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+
+                data.product.forEach(name => {
+                    product.innerHTML += `<option value="${name}">${name}</option>`;
                 });
             });
     });
-    
+
+    // 當選擇商品時，取得價格並更新價格欄位
+    product.addEventListener("change", function () {
+        const name = product.value;
+
+        fetch(`/product?product=${encodeURIComponent(name)}`)
+            .then(r => r.json())
+            .then(data => {
+                price.value = data.price;
+                updateTotal();
+            });
+    });
+
+    // 當數量改變時，更新小計欄位
+    amount.addEventListener("input", updateTotal);
+
+    function updateTotal() {
+        const p = Number(price.value);
+        const q = Number(amount.value);
+
+        total.value = p > 0 && q > 0 ? p * q : 0;
+    }
 });
-
-// 當選擇商品時，取得價格並更新價格欄位
-qty.addEventListener("input", UpdateSubtotal);
-price.addEventListener("input", UpdateSubtotal);
-
-function UpdateSubtotal() {
-    const p = Number(price.value);
-    const q = Number(qty.value);
-    subtotal.value = p > 0 && q > 0 ? p * q : 0;
-}
 
 // 連接後端 POST /product
 document.getElementById("submit-btn").addEventListener("click", function() {
     // 要傳送的資料
     const body = {
-            date: document.getElementById("order-date").value,
-            customer: document.getElementById("customer").value,
-            category: category.value,
-            product: product.value,
-            price: Number(price.value),
-            qty: Number(qty.value),
-            subtotal: Number(subtotal.value),
-            status: document.getElementById("status").value,
-            note: document.getElementById("note").value        
+        date: document.getElementById("date").value,
+        customer_name: document.getElementById("customer_name").value,
+        product: product.value,
+        amount: Number(amount.value),
+        total: Number(total.value),
+        status: document.getElementById("status").value,
+        note: document.getElementById("note").value        
     };
 
-    fetch("/product", {
 
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(body)
-    })
-    .then(response => response.json())
-    .then(result => {
-        alert("新增成功！");
-        close_input_table(); // 關閉 modal
-        location.assign('/'); // 重新載入頁面
-    });
+        fetch("/product", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+        });
 });

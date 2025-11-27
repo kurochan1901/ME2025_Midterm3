@@ -4,12 +4,13 @@ from core.database.database import Database
 app = Flask(__name__)
 db = Database()
 
-@app.route('/', methods=['GET', 'POST', 'DELETE'])
+@app.route('/', methods=['GET'])
 def index():
     orders = db.get_all_orders()
     warning = request.args.get('warning')
     return render_template('form.html', orders=orders, warning=warning)
 
+@app.route('/product', methods=['GET', 'POST', 'DELETE'])
 def product():
     # 查詢產品名稱或價格
     if request.method == 'GET':
@@ -26,7 +27,12 @@ def product():
     # 新增訂單
     elif request.method == 'POST':
         data = request.get_json()
+
+        # 產生 order_id
+        order_id = db.generate_order_id()
+
         order_data = {
+            "order_id": order_id,
             "product_date":    data.get("date"),
             "customer_name":   data.get("customer_name"),
             "product_name":    data.get("product"),
@@ -34,7 +40,6 @@ def product():
             "product_total":   data.get("total"),
             "product_status":  data.get("status"),
             "product_note":    data.get("note")
-
         }
         # Add the order to the database
         db.add_order(order_data)
