@@ -66,3 +66,32 @@ function UpdateSubtotal() {
     const q = Number(qty.value);
     subtotal.value = p > 0 && q > 0 ? p * q : 0;
 }
+
+// 連接後端 POST /product
+document.getElementById("submit-btn").addEventListener("click", function() {
+    // 要傳送的資料
+    const body = {
+            date: document.getElementById("order-date").value,
+            customer: document.getElementById("customer").value,
+            category: category.value,
+            product: product.value,
+            price: Number(price.value),
+            qty: Number(qty.value),
+            subtotal: Number(subtotal.value),
+            status: document.getElementById("status").value,
+            note: document.getElementById("note").value        
+    };
+
+    fetch("/product", {
+
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body)
+    })
+    .then(response => response.json())
+    .then(result => {
+        alert("新增成功！");
+        close_input_table(); // 關閉 modal
+        location.assign('/'); // 重新載入頁面
+    });
+});
