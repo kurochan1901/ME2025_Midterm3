@@ -56,3 +56,13 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     
 });
+
+// 當選擇商品時，取得價格並更新價格欄位
+qty.addEventListener("input", UpdateSubtotal);
+price.addEventListener("input", UpdateSubtotal);
+
+function UpdateSubtotal() {
+    const p = Number(price.value);
+    const q = Number(qty.value);
+    subtotal.value = p > 0 && q > 0 ? p * q : 0;
+}
